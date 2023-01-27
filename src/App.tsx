@@ -10,8 +10,13 @@ import Canvas from "./utils/Canvas";
 function App() {
   const wInput = useRef<HTMLInputElement>(null);
   const hInput = useRef<HTMLInputElement>(null);
+  const qualityInput = useRef<HTMLInputElement>(null);
+  const downloadQualityDisplay = useRef<HTMLInputElement>(null);
+  const downloadTypeInput = useRef<HTMLSelectElement>(null);
+
   const mutateBtn = useRef<HTMLButtonElement>(null);
   const downloadBtn = useRef<HTMLButtonElement>(null);
+
   const oCanvas = useRef<HTMLCanvasElement>(null);
   const mCanvas = useRef<HTMLCanvasElement>(null);
   const dropZone = useRef<HTMLDivElement>(null);
@@ -20,9 +25,29 @@ function App() {
   const mic = useRef<Canvas | null>();
   const imageList = useRef<FileList | null>();
 
+  const downloadQuality = useRef<number>(0.6);
+  const downloadType = useRef<string>("");
+
   useEffect(() => {
     mutateBtn.current!.addEventListener("click", (e) => {
       mutate();
+    });
+
+    downloadBtn.current!.addEventListener("click", (e) => {
+      download();
+    });
+
+    qualityInput.current!.addEventListener("input", (e) => {
+      const slider = e.currentTarget as HTMLInputElement;
+      downloadQualityDisplay.current!.value = slider.value;
+      downloadQuality.current = parseFloat(slider.value);
+    });
+
+    downloadTypeInput.current!.addEventListener("input", (e) => {
+      const selector = e.currentTarget as HTMLSelectElement;
+      console.log(selector.value);
+
+      downloadType.current = selector.value;
     });
   }, []);
 
@@ -36,7 +61,7 @@ function App() {
       e.stopPropagation();
       dropZone.current!.innerText = "OK, DROP";
     });
-    dropZone.current!.addEventListener("dragend", (e: DragEvent) => {
+    dropZone.current!.addEventListener("dragleave", (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       dropZone.current!.innerText = "DROP HERE";
@@ -44,6 +69,8 @@ function App() {
     dropZone.current!.addEventListener("drop", (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      dropZone.current!.innerText = "DROP HERE";
       imageList.current = e.dataTransfer!.files;
 
       fr.onloadend = (e) => {
@@ -71,6 +98,26 @@ function App() {
       parseFloat(wInput.current!.value),
       parseFloat(hInput.current!.value)
     );
+  }
+
+  function download() {
+    console.log(downloadType.current);
+
+    if (downloadType.current == "") {
+      alert(`SELECT A IMAGE TYPE TO DOWNLOAD`);
+      return;
+    }
+
+    const downloadLink = document.createElement("a");
+    downloadLink.download =
+      imageList.current![0].name.split(".")[0] +
+      "." +
+      downloadType.current.split("/")[1];
+    downloadLink.href = mic.current?.saveImage(
+      downloadType.current!,
+      downloadQuality.current
+    )!;
+    downloadLink.click();
   }
 
   return (
@@ -113,7 +160,21 @@ function App() {
                   </Grid>
 
                   <hr />
-                  <span>Quality</span>
+                  <Grid
+                    width={"w-full"}
+                    height={"h-fit"}
+                    direction={"flex-row"}
+                    alignItems={`items-center`}
+                    justifyContent={`justify-between`}>
+                    <span>Quality</span>
+                    <input
+                      ref={downloadQualityDisplay}
+                      type={`text`}
+                      defaultValue={0.6}
+                      disabled={true}
+                      className={`w-[3rem] h-fit p-2 border-2 rounded-md text-center`}
+                    />
+                  </Grid>
                   <Grid
                     width={"w-full"}
                     height={"h-fit"}
@@ -121,8 +182,13 @@ function App() {
                     alignItems={"items-center"}
                     justifyContent={`justify-between`}>
                     <input
+                      ref={qualityInput}
                       type={"range"}
                       className={`w-full`}
+                      min={0.1}
+                      max={1.0}
+                      step={0.1}
+                      defaultValue={0.6}
                     />
                     <Button
                       refLink={mutateBtn}
@@ -130,14 +196,35 @@ function App() {
                       color={"bg-primary text-white"}>
                       MUTATE
                     </Button>
-                    <Button
-                      refLink={downloadBtn}
-                      width={"w-full"}
-                      color={
-                        "bg-secondary border-2 border-primary text-primary"
-                      }>
-                      Download
-                    </Button>
+                    <Grid
+                      width={`w-full`}
+                      height={`h-fit`}
+                      direction={`flex-row`}
+                      alignItems={`items-center`}
+                      justifyContent={`justify-between`}>
+                      <select
+                        ref={downloadTypeInput}
+                        defaultValue={`dummy`}
+                        className={`w-full h-fit p-3 rounded-md border-2`}>
+                        <option
+                          value="dummy"
+                          disabled={true}>
+                          Select Image Type
+                        </option>
+                        <option value="image/jpg">JPG</option>
+                        <option value="image/jpeg">JPEG</option>
+                        <option value="image/png">PNG</option>
+                        <option value="image/webp">WEBP</option>
+                      </select>
+                      <Button
+                        refLink={downloadBtn}
+                        width={"w-full"}
+                        color={
+                          "bg-secondary border-2 border-primary text-primary"
+                        }>
+                        Download
+                      </Button>
+                    </Grid>
                   </Grid>
                 </Grid>
               </Card>

@@ -33,6 +33,10 @@ class Canvas {
     this.scale(this.img.width, this.img.height);
     return [this.img.width, this.img.height];
   }
+
+  saveImage(imageType: string, quality: number = 1.0) {
+    return this.canvas.toDataURL(imageType, quality);
+  }
 }
 
 export default Canvas;

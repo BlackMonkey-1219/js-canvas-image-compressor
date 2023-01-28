@@ -1,7 +1,7 @@
-class Canvas {
+class CanvasClass {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  img: HTMLImageElement | null;
+  img: HTMLImageElement;
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvas.width = 5000;
@@ -10,7 +10,7 @@ class Canvas {
     this.ctx = this.canvas.getContext("2d")!;
     this.clear();
 
-    this.img = null;
+    this.img = new Image();
   }
 
   clear() {
@@ -39,4 +39,4 @@ class Canvas {
   }
 }
 
-export default Canvas;
+export default CanvasClass;
